@@ -3,16 +3,12 @@ package com.heroku.agent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.lang.instrument.Instrumentation;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -23,11 +19,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 
 public class Agent {
 
@@ -44,10 +35,10 @@ public class Agent {
 
     public static class Reporter extends TimerTask {
 
-        private final String AWS_ACCESS_KEY = System.getenv("S3_KEY");
-        private final String AWS_SECRET = System.getenv("S3_SECRET");
+        //private final String AWS_ACCESS_KEY = System.getenv("S3_KEY");
+        //private final String AWS_SECRET = System.getenv("S3_SECRET");
         private final String APP_NAME = System.getenv("APP_NAME");
-        private final String API_BASE = "http://localhost:3000";
+        private final String API_BASE = System.getenv("API_BASE") != null ? System.getenv("APP_NAME") : "https://jstethoscope.herokuapp.com";
         private final String BUCKET_NAME = APP_NAME + "-java-diagnostics";
 
         public Reporter() {
@@ -286,19 +277,19 @@ public class Agent {
             System.out.println(out);
         }
 
-        private void uploadToS3(String filename) {
-            AmazonS3 s3 = new AmazonS3Client(new BasicAWSCredentials(
-                    AWS_ACCESS_KEY, AWS_SECRET));
-            File file = new File(filename);
-            formatAndOutput("saving " + filename + " to " + BUCKET_NAME
-                    + " bucket at key: " + file.getName());
-            s3.putObject(new PutObjectRequest(BUCKET_NAME, file.getName(), file));
-        }
+//        private void uploadToS3(String filename) {
+//            AmazonS3 s3 = new AmazonS3Client(new BasicAWSCredentials(
+//                    AWS_ACCESS_KEY, AWS_SECRET));
+//            File file = new File(filename);
+//            formatAndOutput("saving " + filename + " to " + BUCKET_NAME
+//                    + " bucket at key: " + file.getName());
+//            s3.putObject(new PutObjectRequest(BUCKET_NAME, file.getName(), file));
+//        }
         
         
         
         private URLConnection openUrlForSend(String urlLoc, String boundary) throws IOException {
-            URL url = new URL("http", "127.0.0.1", 8080, urlLoc);
+            URL url = new URL(urlLoc);
             URLConnection conn = url.openConnection();
             conn.setDoOutput(true);
             conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
